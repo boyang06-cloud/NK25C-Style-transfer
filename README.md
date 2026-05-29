@@ -1,4 +1,150 @@
 # NK25C-Style-transfer
+
+基于 AdaIN（Adaptive Instance Normalization）实现的图像风格迁移神经网络。
+
+## 项目简介
+
+本项目实现了一个端到端的图像风格迁移模型，核心思想来源于论文 *"Arbitrary Style Transfer in Real-time with Adaptive Instance Normalization"*。通过学习解码器网络，模型能够将任意风格图像的风格迁移到任意内容图像上。
+
+### 技术特点
+
+- **AdaIN 层**: 自适应实例归一化，实现风格与内容的分离
+- **预训练 VGG Encoder**: 使用 VGG19 的前30层作为编码器
+- **可训练 Decoder**: 学习从风格化特征重建图像
+- **实时推理**: 单次风格迁移仅需毫秒级时间
+
+## 项目结构
+
+```
+├── src/                  # 模型源代码
+│   ├── __init__.py
+│   ├── AdaIN.py          # AdaIN 层实现
+│   ├── Encoder.py        # VGG 编码器
+│   ├── Decoder.py        # 解码器网络
+│   └── model.py          # 完整风格迁移模型
+├── train2.py             # 训练脚本
+├── valid.py              # 验证/测试脚本
+├── show.py               # 批量展示脚本
+├── config.py             # 超参数配置
+├── utils.py              # 工具函数（数据加载等）
+└── decoder*.pth          # 预训练解码器权重
+```
+
+## 环境要求
+
+- Python 3.x
+- PyTorch >= 1.0
+- torchvision
+- Pillow
+- tqdm
+- tensorboard
+
+## 快速开始
+
+### 1. 安装依赖
+
+```bash
+pip install torch torchvision pillow tqdm tensorboard
+```
+
+### 2. 训练模型
+
+修改 `config.py` 配置超参数后运行：
+
+```bash
+python train2.py
+```
+
+训练完成后，解码器权重将保存为 `decoder444.pth`。
+
+### 3. 风格迁移测试
+
+修改 `valid.py` 中的内容图和风格图路径：
+
+```python
+content_path = 'your_content.jpg'  # 内容图像路径
+style_path = 'your_style.jpg'      # 风格图像路径
+```
+
+运行测试：
+
+```bash
+python valid.py
+```
+
+### 4. 查看结果
+
+使用 TensorBoard 查看风格迁移效果：
+
+```bash
+tensorboard --logdir=logs
+```
+
+## 使用示例
+
+### 训练参数配置
+
+在 `config.py` 中配置训练超参数：
+
+```python
+epoch = 20           # 训练轮数
+batch_size = 16      # 批次大小
+lr = 1e-4            # 学习率
+CONTENT_WEIGHT = 1   # 内容损失权重
+STYLE_WEIGHT = 10    # 风格损失权重
+```
+
+### 批量展示
+
+运行 `show.py` 批量处理数据集并可视化：
+
+```bash
+python show.py
+tensorboard --logdir=show_logs
+```
+
+## 模型架构
+
+```
+内容图像 ──┐
+           ├── Encoder ──→ 内容特征 ──┐
+                                    ├── AdaIN ──→ 风格化特征 ──→ Decoder ──→ 输出图像
+风格图像 ──┐                        │
+           ├── Encoder ──→ 风格特征 ──┘
+```
+
+## 损失函数
+
+总损失 = CONTENT_WEIGHT × 内容损失 + STYLE_WEIGHT × 风格损失
+
+- **内容损失**: MSE 损失（生成特征与内容特征）
+- **风格损失**: 均值和标准差的 MSE 损失
+
+## 预训练模型
+
+项目提供了多个预训练解码器权重：
+- `decoder222.pth`
+- `decoder333.pth`
+- `decoder444.pth`
+
+在 `valid.py` 或 `show.py` 中指定使用的模型：
+
+```python
+model = StyleTransferNet(decoder_ckpt='./decoder444.pth', device=device)
+```
+
+## 数据集要求
+
+- 内容数据集：任意图像数据集（建议使用 COCO 或 ImageNet）
+- 风格数据集：艺术作品或风格化图像
+
+在 `utils.py` 中配置数据集路径。
+
+## 参考论文
+
+Huang, X., & Belongie, S. (2017). Arbitrary Style Transfer in Real-time with Adaptive Instance Normalization. arXiv preprint arXiv:1703.06868.
+
+---------------------------------------以下为 南开大学25C++课程大作业要求说明-------------------------------------------------------------------
 作为南开大学25年C++课程的大作业设计。实现基于VGG网络的图像风格迁移任务。
 基于pytorch框架在python端实现模型设计和保存
 使用libtorch，openCV实现模型在C++端的部署
